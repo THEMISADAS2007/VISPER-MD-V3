@@ -1,25 +1,28 @@
-FROM node:lts-buster
+FROM node:23
 
-# Use Debian archive repositories for Buster (EOL)
-RUN sed -i 's|http://deb.debian.org/debian|http://archive.debian.org/debian|g' /etc/apt/sources.list && \
-    sed -i 's|http://security.debian.org/debian-security|http://archive.debian.org/debian-security|g' /etc/apt/sources.list && \
-    echo 'Acquire::Check-Valid-Until "false";' > /etc/apt/apt.conf.d/99no-check-valid-until && \
-    apt-get update && \
+# Optional: Set timezone and update base packages
+ENV TZ=Asia/Colombo
+
+RUN apt-get update && \
     apt-get install -y \
-      ffmpeg \
-      imagemagick \
-      webp && \
-    apt-get upgrade -y && \
+        ffmpeg \
+        imagemagick \
+        webp && \
     rm -rf /var/lib/apt/lists/*
 
+# Set working directory
 WORKDIR /usr/src/app
 
-COPY package.json .
+# Copy package files and install dependencies
+COPY package.json ./
 
 RUN npm install && npm install -g qrcode-terminal pm2
 
+# Copy all app source
 COPY . .
 
+# Expose port (change if needed)
 EXPOSE 5000
 
+# Start app
 CMD ["npm", "start"]
